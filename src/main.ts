@@ -2,9 +2,10 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { ConfigService } from '@nestjs/config';
 import { ValidationPipe } from '@nestjs/common';
+
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
-  await app.listen(process.env.PORT ?? 3003);
+
   const configService = app.get(ConfigService);
   const corsOrigin = configService.get<string>('CORS_ORIGIN') ?? 'http://localhost:3000';
   const corsOrigins = corsOrigin
@@ -17,9 +18,10 @@ async function bootstrap() {
     origin: corsOrigins,
     credentials: true,
   });
-  
+
+  await app.listen(process.env.PORT ?? 3003);
 }
-  bootstrap().catch((error) => {
-    console.error(error);
-    process.exit(1);
-  });
+bootstrap().catch((error) => {
+  console.error(error);
+  process.exit(1);
+});
