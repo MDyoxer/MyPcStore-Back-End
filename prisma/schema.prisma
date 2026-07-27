@@ -1,0 +1,76 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model cat_categoria_pt {
+  id_ctp        Int             @id @default(autoincrement())
+  categoria_ctp String          @db.VarChar(255)
+  slug_ctp      String?         @unique @db.VarChar(255)
+  tbl_productos tbl_productos[]
+}
+
+model tbl_carrito {
+  id_car        Int           @id @default(autoincrement())
+  id_c_car      Int
+  id_pt_car     Int
+  cantidad_car  Int
+  tbl_clientes  tbl_clientes  @relation(fields: [id_c_car], references: [id_c], onDelete: NoAction, onUpdate: NoAction)
+  tbl_productos tbl_productos @relation(fields: [id_pt_car], references: [id_pt], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model tbl_clientes {
+  id_c        Int           @id @default(autoincrement())
+  nombre_c    String        @db.VarChar(255)
+  correo_c    String        @unique @db.VarChar(255)
+  pass_c      String        @db.VarChar(255)
+  is_active_c Int           @db.SmallInt
+  tbl_carrito tbl_carrito[]
+  tbl_ordenes tbl_ordenes[]
+}
+
+model tbl_detalles_orden {
+  id_dto            Int           @id @default(autoincrement())
+  id_ord_dto        Int
+  id_pt_dto         Int
+  cantidad_dto      Int
+  precio_guardo_dto Decimal       @db.Decimal(10, 2)
+  tbl_ordenes       tbl_ordenes   @relation(fields: [id_ord_dto], references: [id_ord], onDelete: NoAction, onUpdate: NoAction)
+  tbl_productos     tbl_productos @relation(fields: [id_pt_dto], references: [id_pt], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model tbl_marcas {
+  id_mc         Int             @id @default(autoincrement())
+  marca_mc      String          @db.VarChar(255)
+  tbl_productos tbl_productos[]
+}
+
+model tbl_ordenes {
+  id_ord             Int                  @id @default(autoincrement())
+  id_c_ord           Int
+  fecha_ord          DateTime             @db.Timestamp(6)
+  total_ord          Decimal              @db.Decimal(10, 2)
+  estado_ord         String               @default("Pendiente") @db.VarChar(255)
+  tbl_detalles_orden tbl_detalles_orden[]
+  tbl_clientes       tbl_clientes         @relation(fields: [id_c_ord], references: [id_c], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model tbl_productos {
+  id_pt              Int                  @id @default(autoincrement())
+  nombre_pt          String               @db.VarChar(255)
+  precio_pt          Decimal              @db.Decimal(10, 2)
+  img_pt             String?
+  specs_pt           Json?
+  is_active_pt       Int                  @db.SmallInt
+  stock_pt           Int
+  id_ctp_pt          Int
+  id_mc_pt           Int?
+  tbl_carrito        tbl_carrito[]
+  tbl_detalles_orden tbl_detalles_orden[]
+  cat_categoria_pt   cat_categoria_pt     @relation(fields: [id_ctp_pt], references: [id_ctp], onDelete: NoAction, onUpdate: NoAction)
+  tbl_marcas         tbl_marcas?          @relation(fields: [id_mc_pt], references: [id_mc], onDelete: NoAction, onUpdate: NoAction)
+}
