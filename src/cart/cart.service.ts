@@ -15,6 +15,7 @@ export class CartService {
         where: {},//TODO: Parametro email del usuario logueado
         select: {
           cantidad_car: true,
+          id_car:true,
           tbl_productos: {
             select: {
               nombre_pt: true,
@@ -26,10 +27,11 @@ export class CartService {
         }
       })
       return response.map((item) => ({
+        id: item.id_car,
         cantidad: item.cantidad_car,
         nombre: item.tbl_productos.nombre_pt,
         precio: item.tbl_productos.precio_pt,
-        img: item.tbl_productos.img_pt,
+        imagen: item.tbl_productos.img_pt,
       }));
     } catch (error) {
       console.error('Error finding user cart:', error);
