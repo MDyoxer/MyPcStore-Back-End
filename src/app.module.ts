@@ -9,8 +9,9 @@ import { ClientsModule } from './clients/clients.module';
 import { OrdersModule } from './orders/orders.module';
 import { ProductsModule } from './products/products.module';
 import { CartModule } from './cart/cart.module';
+import { AuthModule } from './auth/auth.module';
 @Module({
-  imports: [ConfigModule.forRoot({ isGlobal: true }), PrismaModule, BrandsModule, CategoriesModule, ClientsModule, OrdersModule, ProductsModule, CartModule],
+  imports: [ConfigModule.forRoot({ isGlobal: true }), PrismaModule, AuthModule, BrandsModule, CategoriesModule, ClientsModule, OrdersModule, ProductsModule, CartModule],
   controllers: [AppController],
   providers: [AppService,],
 })

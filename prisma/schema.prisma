@@ -18,14 +18,13 @@ model tbl_carrito {
 }
 
 model tbl_clientes {
-  id_c        Int           @id @default(autoincrement())
-  nombre_c    String        @db.VarChar(255)
-  correo_c    String        @unique @db.VarChar(255)
-  pass_c      String        @db.VarChar(255)
-  is_active_c Int           @default(1) @db.SmallInt
-  firebaseuid String?       @unique @db.VarChar(255)
-  tbl_carrito tbl_carrito[]
-  tbl_ordenes tbl_ordenes[]
+  id_c         Int           @id @default(autoincrement())
+  nombre_c     String        @db.VarChar(255)
+  correo_c     String        @unique @db.VarChar(255)
+  is_active_c  Int           @default(1) @db.SmallInt
+  firebase_uid String        @unique(map: "tbl_clientes_firebaseuid_key") @db.VarChar(255)
+  tbl_carrito  tbl_carrito[]
+  tbl_ordenes  tbl_ordenes[]
 }
 
 model tbl_detalles_orden {
