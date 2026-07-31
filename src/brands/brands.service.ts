@@ -9,9 +9,19 @@ export class BrandsService {
   async create(createBrandDto: CreateBrandDto) {
     return 'This action adds a new brand';
   }
-
-  findAll() {
-    return `This action returns all brands`;
+  //find all brands 
+  async findAllBrands() {
+    const brands = await this.prisma.tbl_marcas.findMany({
+      where: {is_active_mc: 1},
+      select: {
+        id_mc: true,
+        marca_mc: true,
+      }
+    })
+    return brands.map((brand) => ({
+      id: brand.id_mc,
+      marca: brand.marca_mc,
+    }));
   }
 
   findOne(id: number) {
