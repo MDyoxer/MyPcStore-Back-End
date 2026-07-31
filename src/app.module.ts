@@ -10,9 +10,12 @@ import { OrdersModule } from './orders/orders.module';
 import { ProductsModule } from './products/products.module';
 import { CartModule } from './cart/cart.module';
 import { AuthModule } from './auth/auth.module';
+import { FirebaseAdminService } from './auth/firebase-admin.service';
+import { FirebaseAuthGuard } from './auth/guard/firebase-auth.guard';
 @Module({
   imports: [ConfigModule.forRoot({ isGlobal: true }), PrismaModule, AuthModule, BrandsModule, CategoriesModule, ClientsModule, OrdersModule, ProductsModule, CartModule],
   controllers: [AppController],
-  providers: [AppService,],
+  providers: [AppService, FirebaseAdminService, FirebaseAuthGuard],
+  exports: [FirebaseAdminService, FirebaseAuthGuard],
 })
 export class AppModule {}

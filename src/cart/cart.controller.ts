@@ -1,20 +1,29 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards } from '@nestjs/common';
 import { CartService } from './cart.service';
 import { CreateCartDto } from './dto/create-cart.dto';
 import { UpdateCartDto } from './dto/update-cart.dto';
-
+import { FirebaseAuthGuard } from 'src/auth/guard/firebase-auth.guard';
+import type { tbl_clientes } from 'generated/prisma/client';
+import { CurrentUser } from 'src/auth/decorator/current-user.decorator';
 @Controller('cart')
+@UseGuards(FirebaseAuthGuard)
 export class CartController {
   constructor(private readonly cartService: CartService) { }
 
-  @Post()
-  create(@Body() createCartDto: CreateCartDto) {
-    return this.cartService.create(createCartDto);
+ @Post()
+  addProductToCart(
+    @Body() createCartDto: CreateCartDto, 
+    @CurrentUser() client: tbl_clientes
+  ){
+    return this.cartService.addProductToCart(createCartDto, client);
   }
-  //TODO: auth to get user
+
+
   @Get('userCart')
-  async userCart() {
-    return await this.cartService.userCart();
+  async userCart(
+    @CurrentUser() client: tbl_clientes
+  ) {
+    return await this.cartService.userCart(client.id_c);
   }
 
   @Get(':id')
