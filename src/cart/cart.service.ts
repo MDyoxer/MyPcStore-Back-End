@@ -2,31 +2,32 @@ import { Injectable } from '@nestjs/common';
 import { CreateCartDto } from './dto/create-cart.dto';
 import { UpdateCartDto } from './dto/update-cart.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
-import type { tbl_clientes } from 'generated/prisma/client';
+import { AuthenticatedClient } from 'src/auth/types/authenticated-client';
+
 @Injectable()
 export class CartService {
   constructor(private readonly prisma: PrismaService) { }
 
-  async addProductToCart(createCartDto: CreateCartDto, client: tbl_clientes) {
+  async addProductToCart(createCartDto: CreateCartDto, client: AuthenticatedClient) {
     return await this.prisma.tbl_carrito.create({
       data: {
-        id_pt_car: createCartDto.id_pt,
-        id_c_car: client.id_c,
+        id_pt_car: createCartDto.idProducto,
+        id_c_car: client.id,
         cantidad_car: createCartDto.cantidad,
       },
     });
   }
-  
-  //get user cart by email
-  async userCart(id_c: number) {
+
+  async userCart(id: number) {
     try {
       const response = await this.prisma.tbl_carrito.findMany({
-        where: {},//TODO: Parametro email del usuario logueado
+        where: { id_c_car: id },
         select: {
           cantidad_car: true,
           id_car: true,
           tbl_productos: {
             select: {
+              id_pt: true,
               nombre_pt: true,
               precio_pt: true,
               img_pt: true,
@@ -37,6 +38,7 @@ export class CartService {
       })
       return response.map((item) => ({
         id: item.id_car,
+        idProducto: item.tbl_productos.id_pt,
         cantidad: item.cantidad_car,
         nombre: item.tbl_productos.nombre_pt,
         precio: item.tbl_productos.precio_pt,

@@ -18,13 +18,14 @@ model tbl_carrito {
 }
 
 model tbl_clientes {
-  id_c         Int           @id @default(autoincrement())
-  nombre_c     String        @db.VarChar(255)
-  correo_c     String        @unique @db.VarChar(255)
-  is_active_c  Int           @default(1) @db.SmallInt
-  firebase_uid String        @unique(map: "tbl_clientes_firebaseuid_key") @db.VarChar(255)
-  tbl_carrito  tbl_carrito[]
-  tbl_ordenes  tbl_ordenes[]
+  id_c          Int             @id @default(autoincrement())
+  nombre_c      String          @db.VarChar(255)
+  correo_c      String          @unique @db.VarChar(255)
+  is_active_c   Int             @default(1) @db.SmallInt
+  firebase_uid  String          @unique(map: "tbl_clientes_firebaseuid_key") @db.VarChar(255)
+  tbl_carrito   tbl_carrito[]
+  tbl_favoritos tbl_favoritos[]
+  tbl_ordenes   tbl_ordenes[]
 }
 
 model tbl_detalles_orden {
@@ -69,6 +70,7 @@ model tbl_productos {
   descripcion_pt     String?
   tbl_carrito        tbl_carrito[]
   tbl_detalles_orden tbl_detalles_orden[]
+  tbl_favoritos      tbl_favoritos[]
   cat_categoria_pt   cat_categoriasprod   @relation(fields: [id_ctp_pt], references: [id_ctp], onDelete: NoAction, onUpdate: NoAction)
   tbl_marcas         tbl_marcas?          @relation(fields: [id_mc_pt], references: [id_mc], onDelete: NoAction, onUpdate: NoAction)
 }
@@ -79,4 +81,16 @@ model cat_categoriasprod {
   slug_ctp      String?         @unique(map: "cat_categoria_pt_slug_ctp_key") @db.VarChar(255)
   is_active_ctp Int?            @default(1) @db.SmallInt
   tbl_productos tbl_productos[]
+}
+
+model tbl_favoritos {
+  id_fav        Int           @id @default(autoincrement())
+  id_pt_fav     Int
+  id_c_fav      Int
+  agregado_fav  DateTime      @default(now()) @db.Timestamp(6)
+  is_active_fav Int           @default(1) @db.SmallInt
+  tbl_clientes  tbl_clientes  @relation(fields: [id_c_fav], references: [id_c], onDelete: NoAction, onUpdate: NoAction, map: "fk_fav_cliente")
+  tbl_productos tbl_productos @relation(fields: [id_pt_fav], references: [id_pt], onDelete: NoAction, onUpdate: NoAction, map: "fk_fav_producto")
+
+  @@unique([id_c_fav, id_pt_fav], map: "unq_cliente_producto_fav")
 }
