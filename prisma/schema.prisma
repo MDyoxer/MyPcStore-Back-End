@@ -1,17 +1,11 @@
 generator client {
-  provider = "prisma-client"
-  output   = "../generated/prisma"
+  provider     = "prisma-client"
+  output       = "../generated/prisma"
+  moduleFormat = "cjs"
 }
 
 datasource db {
   provider = "postgresql"
-}
-
-model cat_categoria_pt {
-  id_ctp        Int             @id @default(autoincrement())
-  categoria_ctp String          @db.VarChar(255)
-  slug_ctp      String?         @unique @db.VarChar(255)
-  tbl_productos tbl_productos[]
 }
 
 model tbl_carrito {
@@ -24,13 +18,14 @@ model tbl_carrito {
 }
 
 model tbl_clientes {
-  id_c        Int           @id @default(autoincrement())
-  nombre_c    String        @db.VarChar(255)
-  correo_c    String        @unique @db.VarChar(255)
-  pass_c      String        @db.VarChar(255)
-  is_active_c Int           @db.SmallInt
-  tbl_carrito tbl_carrito[]
-  tbl_ordenes tbl_ordenes[]
+  id_c          Int             @id @default(autoincrement())
+  nombre_c      String          @db.VarChar(255)
+  correo_c      String          @unique @db.VarChar(255)
+  is_active_c   Int             @default(1) @db.SmallInt
+  firebase_uid  String          @unique(map: "tbl_clientes_firebaseuid_key") @db.VarChar(255)
+  tbl_carrito   tbl_carrito[]
+  tbl_favoritos tbl_favoritos[]
+  tbl_ordenes   tbl_ordenes[]
 }
 
 model tbl_detalles_orden {
@@ -39,6 +34,7 @@ model tbl_detalles_orden {
   id_pt_dto         Int
   cantidad_dto      Int
   precio_guardo_dto Decimal       @db.Decimal(10, 2)
+  is_active_dto     Int?          @default(1) @db.SmallInt
   tbl_ordenes       tbl_ordenes   @relation(fields: [id_ord_dto], references: [id_ord], onDelete: NoAction, onUpdate: NoAction)
   tbl_productos     tbl_productos @relation(fields: [id_pt_dto], references: [id_pt], onDelete: NoAction, onUpdate: NoAction)
 }
@@ -46,15 +42,17 @@ model tbl_detalles_orden {
 model tbl_marcas {
   id_mc         Int             @id @default(autoincrement())
   marca_mc      String          @db.VarChar(255)
+  is_active_mc  Int?            @default(1) @db.SmallInt
   tbl_productos tbl_productos[]
 }
 
 model tbl_ordenes {
   id_ord             Int                  @id @default(autoincrement())
   id_c_ord           Int
-  fecha_ord          DateTime             @db.Timestamp(6)
+  fecha_ord          DateTime             @default(now()) @db.Timestamp(6)
   total_ord          Decimal              @db.Decimal(10, 2)
   estado_ord         String               @default("Pendiente") @db.VarChar(255)
+  is_active_ord      Int?                 @default(1) @db.SmallInt
   tbl_detalles_orden tbl_detalles_orden[]
   tbl_clientes       tbl_clientes         @relation(fields: [id_c_ord], references: [id_c], onDelete: NoAction, onUpdate: NoAction)
 }
@@ -65,12 +63,34 @@ model tbl_productos {
   precio_pt          Decimal              @db.Decimal(10, 2)
   img_pt             String?
   specs_pt           Json?
-  is_active_pt       Int                  @db.SmallInt
+  is_active_pt       Int                  @default(1) @db.SmallInt
   stock_pt           Int
   id_ctp_pt          Int
   id_mc_pt           Int?
+  descripcion_pt     String?
   tbl_carrito        tbl_carrito[]
   tbl_detalles_orden tbl_detalles_orden[]
-  cat_categoria_pt   cat_categoria_pt     @relation(fields: [id_ctp_pt], references: [id_ctp], onDelete: NoAction, onUpdate: NoAction)
+  tbl_favoritos      tbl_favoritos[]
+  cat_categoria_pt   cat_categoriasprod   @relation(fields: [id_ctp_pt], references: [id_ctp], onDelete: NoAction, onUpdate: NoAction)
   tbl_marcas         tbl_marcas?          @relation(fields: [id_mc_pt], references: [id_mc], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model cat_categoriasprod {
+  id_ctp        Int             @id(map: "cat_categoria_pt_pkey") @default(autoincrement())
+  categoria_ctp String          @db.VarChar(255)
+  slug_ctp      String?         @unique(map: "cat_categoria_pt_slug_ctp_key") @db.VarChar(255)
+  is_active_ctp Int?            @default(1) @db.SmallInt
+  tbl_productos tbl_productos[]
+}
+
+model tbl_favoritos {
+  id_fav        Int           @id @default(autoincrement())
+  id_pt_fav     Int
+  id_c_fav      Int
+  agregado_fav  DateTime      @default(now()) @db.Timestamp(6)
+  is_active_fav Int           @default(1) @db.SmallInt
+  tbl_clientes  tbl_clientes  @relation(fields: [id_c_fav], references: [id_c], onDelete: NoAction, onUpdate: NoAction, map: "fk_fav_cliente")
+  tbl_productos tbl_productos @relation(fields: [id_pt_fav], references: [id_pt], onDelete: NoAction, onUpdate: NoAction, map: "fk_fav_producto")
+
+  @@unique([id_c_fav, id_pt_fav], map: "unq_cliente_producto_fav")
 }

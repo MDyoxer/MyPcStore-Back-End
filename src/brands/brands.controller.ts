@@ -12,9 +12,9 @@ export class BrandsController {
     return this.brandsService.create(createBrandDto);
   }
 
-  @Get()
-  findAll() {
-    return this.brandsService.findAll();
+  @Get('allBrands')
+  async findAllBrands() {
+    return this.brandsService.findAllBrands();
   }
 
   @Get(':id')
