@@ -13,6 +13,7 @@ import { AuthModule } from './auth/auth.module';
 import { FirebaseAdminService } from './auth/firebase-admin.service';
 import { FirebaseAuthGuard } from './auth/guard/firebase-auth.guard';
 import { FavoritesModule } from './favorites/favorites.module';
+import { StripeModule } from './stripe/stripe.module';
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
@@ -25,6 +26,7 @@ import { FavoritesModule } from './favorites/favorites.module';
     ProductsModule,
     CartModule,
     FavoritesModule,
+    StripeModule,
   ],
   controllers: [AppController],
   providers: [AppService, FirebaseAdminService, FirebaseAuthGuard],
