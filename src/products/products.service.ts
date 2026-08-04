@@ -19,6 +19,7 @@ export class ProductsService {
           nombre_pt: true,
           precio_pt: true,
           img_pt: true,
+          stock_pt: true,
           cat_categoria_pt: {
             select: {
               categoria_ctp: true,
@@ -34,10 +35,11 @@ export class ProductsService {
       return response.map((producto) => ({
         id: producto.id_pt,
         categoria: producto.cat_categoria_pt.categoria_ctp,
-        marca: producto.tbl_marcas?.marca_mc || "SIN MARCA", //TODO: IF NULL CHANGE TO "SIN MARCA" in bd 
+        marca: producto.tbl_marcas?.marca_mc || "SIN MARCA",
         nombre: producto.nombre_pt,
         precio: producto.precio_pt,
         imagen: producto.img_pt,
+        stock: producto.stock_pt,
       }));
     } catch (error) {
       console.error('Error finding all products:', error);
@@ -52,6 +54,7 @@ export class ProductsService {
         id_pt: id,
       },
       select: {
+        id_pt: true,
         nombre_pt: true,
         precio_pt: true,
         img_pt: true,
@@ -77,6 +80,7 @@ export class ProductsService {
     }
 
     return {
+      id: producto.id_pt,
       nombre: producto.nombre_pt,
       precio: producto.precio_pt,
       imagen: producto.img_pt,

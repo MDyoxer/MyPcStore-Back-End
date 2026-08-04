@@ -15,7 +15,7 @@ export class CartController {
     @Body() createCartDto: CreateCartDto, 
     @CurrentUser() client: AuthenticatedClient
   ){
-    return this.cartService.addProductToCart(createCartDto, client);
+    return this.cartService.addOrUpdateProductToCart(createCartDto, client);
   }
 
 
@@ -36,8 +36,11 @@ export class CartController {
     return this.cartService.update(+id, updateCartDto);
   }
 
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.cartService.remove(+id);
+  @Delete('removeItem/:id')
+  removeItemCart(
+    @Param('id') id: string,
+    @CurrentUser() client: AuthenticatedClient
+  ) {
+      return this.cartService.removeItemCart(+id,client.id);
   }
 }
