@@ -1,4 +1,13 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  UseGuards,
+} from '@nestjs/common';
 import { FavoritesService } from './favorites.service';
 import { CreateFavoriteDto } from './dto/create-favorite.dto';
 import { UpdateFavoriteDto } from './dto/update-favorite.dto';
@@ -14,14 +23,13 @@ export class FavoritesController {
   @Post('addFavorite')
   addFavorite(
     @CurrentUser() client: AuthenticatedClient,
-    @Body() createFavoriteDto: CreateFavoriteDto) {
-    return this.favoritesService.addFavorite(client.id,createFavoriteDto);
+    @Body() createFavoriteDto: CreateFavoriteDto,
+  ) {
+    return this.favoritesService.addFavorite(client.id, createFavoriteDto);
   }
 
   @Get('getFavorites')
-  getAllFavorites(
-      @CurrentUser() client: AuthenticatedClient
-  ) {
+  getAllFavorites(@CurrentUser() client: AuthenticatedClient) {
     return this.favoritesService.getAllFavorites(client.id);
   }
 
@@ -33,9 +41,9 @@ export class FavoritesController {
   @Patch('unfavorite/:id')
   unfavorite(
     @CurrentUser() client: AuthenticatedClient,
-    @Param('id') id: string, 
-  ){
-    return this.favoritesService.unfavorite(client.id,+id);
+    @Param('id') id: string,
+  ) {
+    return this.favoritesService.unfavorite(client.id, +id);
   }
 
   @Delete(':id')

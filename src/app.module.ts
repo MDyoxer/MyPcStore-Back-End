@@ -14,7 +14,18 @@ import { FirebaseAdminService } from './auth/firebase-admin.service';
 import { FirebaseAuthGuard } from './auth/guard/firebase-auth.guard';
 import { FavoritesModule } from './favorites/favorites.module';
 @Module({
-  imports: [ConfigModule.forRoot({ isGlobal: true }), PrismaModule, AuthModule, BrandsModule, CategoriesModule, ClientsModule, OrdersModule, ProductsModule, CartModule, FavoritesModule],
+  imports: [
+    ConfigModule.forRoot({ isGlobal: true }),
+    PrismaModule,
+    AuthModule,
+    BrandsModule,
+    CategoriesModule,
+    ClientsModule,
+    OrdersModule,
+    ProductsModule,
+    CartModule,
+    FavoritesModule,
+  ],
   controllers: [AppController],
   providers: [AppService, FirebaseAdminService, FirebaseAuthGuard],
   exports: [FirebaseAdminService, FirebaseAuthGuard],

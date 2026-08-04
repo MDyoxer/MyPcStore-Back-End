@@ -4,20 +4,20 @@ import { UpdateBrandDto } from './dto/update-brand.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
 @Injectable()
 export class BrandsService {
-  constructor(private readonly prisma: PrismaService){};
-  
+  constructor(private readonly prisma: PrismaService) {}
+
   async create(createBrandDto: CreateBrandDto) {
     return 'This action adds a new brand';
   }
-  //find all brands 
+  //find all brands
   async findAllBrands() {
     const brands = await this.prisma.tbl_marcas.findMany({
-      where: {is_active_mc: 1},
+      where: { is_active_mc: 1 },
       select: {
         id_mc: true,
         marca_mc: true,
-      }
-    })
+      },
+    });
     return brands.map((brand) => ({
       id: brand.id_mc,
       marca: brand.marca_mc,

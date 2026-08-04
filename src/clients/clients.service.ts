@@ -4,7 +4,7 @@ import { UpdateClientDto } from './dto/update-client.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
 @Injectable()
 export class ClientsService {
-  constructor(private readonly prisma: PrismaService) { }
+  constructor(private readonly prisma: PrismaService) {}
   //create a new client
   create(createClientDto: CreateClientDto) {
     return this.prisma.tbl_clientes.create({
@@ -12,7 +12,7 @@ export class ClientsService {
         nombre_c: createClientDto.nombre_c,
         correo_c: createClientDto.correo_c,
         firebase_uid: createClientDto.firebase_uid,
-      }
+      },
     });
   }
 
@@ -25,7 +25,7 @@ export class ClientsService {
         nombre_c: true,
         correo_c: true,
         firebase_uid: true,
-      }
+      },
     });
     if (!client) return null;
     return {

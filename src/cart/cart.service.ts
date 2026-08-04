@@ -1,33 +1,52 @@
 import { Injectable } from '@nestjs/common';
 import { CreateCartDto } from './dto/create-cart.dto';
 import { UpdateCartDto } from './dto/update-cart.dto';
+import { UpdateCartQuantityDto } from './dto/update-cart-quantity.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { AuthenticatedClient } from 'src/auth/types/authenticated-client';
 
 @Injectable()
 export class CartService {
-  constructor(private readonly prisma: PrismaService) { }
+  constructor(private readonly prisma: PrismaService) {}
 
-  async addOrUpdateProductToCart(createCartDto: CreateCartDto, client: AuthenticatedClient) {
+  async addOrUpdateProductToCart(
+    createCartDto: CreateCartDto,
+    client: AuthenticatedClient,
+  ) {
     return await this.prisma.tbl_carrito.upsert({
-      where: { 
-        id_c_car_id_pt_car:{
+      where: {
+        id_c_car_id_pt_car: {
           id_c_car: client.id,
-          id_pt_car: createCartDto.idProducto
-        }
+          id_pt_car: createCartDto.idProducto,
+        },
       },
       update: {
         cantidad_car: {
-          increment : createCartDto.cantidad
-        }
+          increment: createCartDto.cantidad,
+        },
       },
       create: {
         id_pt_car: createCartDto.idProducto,
         id_c_car: client.id,
         cantidad_car: createCartDto.cantidad,
-      }
+      },
     });
-  };
+  }
+
+  async updateQuantity(
+    updateCartQuantityDto: UpdateCartQuantityDto,
+    client: AuthenticatedClient,
+  ) {
+    return await this.prisma.tbl_carrito.updateMany({
+      where: {
+        id_c_car: client.id,
+        id_pt_car: updateCartQuantityDto.idProducto,
+      },
+      data: {
+        cantidad_car: updateCartQuantityDto.cantidad,
+      },
+    });
+  }
 
   async userCart(id: number) {
     try {
@@ -43,11 +62,10 @@ export class CartService {
               precio_pt: true,
               img_pt: true,
               stock_pt: true,
-            }
+            },
           },
-
-        }
-      })
+        },
+      });
       return response.map((item) => ({
         idCarrito: item.id_car,
         idProducto: item.tbl_productos.id_pt,
@@ -55,7 +73,7 @@ export class CartService {
         nombre: item.tbl_productos.nombre_pt,
         precio: item.tbl_productos.precio_pt,
         imagen: item.tbl_productos.img_pt,
-        stock: item.tbl_productos.stock_pt, 
+        stock: item.tbl_productos.stock_pt,
       }));
     } catch (error) {
       console.error('Error finding user cart:', error);
@@ -71,10 +89,10 @@ export class CartService {
     return `This action updates a #${id} cart`;
   }
 
- async removeItemCart(id: number, id_c: number) {
+  async removeItemCart(id: number, id_c: number) {
     const response = await this.prisma.tbl_carrito.deleteMany({
-      where: { id_c_car: id_c, id_car: id } //delete the user cart item based on uid token
-    })
+      where: { id_c_car: id_c, id_car: id }, //delete the user cart item based on uid token
+    });
     return response;
   }
 }

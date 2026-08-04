@@ -1,9 +1,9 @@
-import { Injectable, OnModuleInit } from "@nestjs/common";
+import { Injectable, OnModuleInit } from '@nestjs/common';
 import { initializeApp, getApps, cert } from 'firebase-admin/app';
 import { getAuth } from 'firebase-admin/auth';
 @Injectable()
 export class FirebaseAdminService implements OnModuleInit {
-onModuleInit() {
+  onModuleInit() {
     if (!getApps().length) {
       initializeApp({
         credential: cert({
@@ -14,8 +14,7 @@ onModuleInit() {
       });
     }
   }
-  async verifyIdToken(idToken: string){
+  async verifyIdToken(idToken: string) {
     return await getAuth().verifyIdToken(idToken);
   }
-
 }

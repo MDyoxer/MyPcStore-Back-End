@@ -6,6 +6,6 @@ import { ClientsModule } from 'src/clients/clients.module';
 @Module({
   controllers: [CartController],
   providers: [CartService],
-  imports: [AuthModule,ClientsModule],
+  imports: [AuthModule, ClientsModule],
 })
 export class CartModule {}
