@@ -25,6 +25,9 @@ model tbl_clientes {
   correo_c      String          @unique @db.VarChar(255)
   is_active_c   Int             @default(1) @db.SmallInt
   firebase_uid  String          @unique(map: "tbl_clientes_firebaseuid_key") @db.VarChar(255)
+  stripeid_c    String?         @unique @db.VarChar(255)
+  celular_c     String?         @db.VarChar(255)
+  creado_c      DateTime?       @default(now()) @db.Timestamp(6)
   tbl_carrito   tbl_carrito[]
   tbl_favoritos tbl_favoritos[]
   tbl_ordenes   tbl_ordenes[]
@@ -49,14 +52,15 @@ model tbl_marcas {
 }
 
 model tbl_ordenes {
-  id_ord             Int                  @id @default(autoincrement())
-  id_c_ord           Int
-  fecha_ord          DateTime             @default(now()) @db.Timestamp(6)
-  total_ord          Decimal              @db.Decimal(10, 2)
-  estado_ord         String               @default("Pendiente") @db.VarChar(255)
-  is_active_ord      Int?                 @default(1) @db.SmallInt
-  tbl_detalles_orden tbl_detalles_orden[]
-  tbl_clientes       tbl_clientes         @relation(fields: [id_c_ord], references: [id_c], onDelete: NoAction, onUpdate: NoAction)
+  id_ord                       Int                  @id @default(autoincrement())
+  id_c_ord                     Int
+  fecha_ord                    DateTime             @default(now()) @db.Timestamp(6)
+  total_ord                    Decimal              @db.Decimal(10, 2)
+  estado_ord                   String               @default("Pendiente") @db.VarChar(255)
+  is_active_ord                Int?                 @default(1) @db.SmallInt
+  stripe_payment_intent_id_ord String?              @db.VarChar(255)
+  tbl_detalles_orden           tbl_detalles_orden[]
+  tbl_clientes                 tbl_clientes         @relation(fields: [id_c_ord], references: [id_c], onDelete: NoAction, onUpdate: NoAction)
 }
 
 model tbl_productos {

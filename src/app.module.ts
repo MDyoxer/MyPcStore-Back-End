@@ -26,7 +26,7 @@ import { StripeModule } from './stripe/stripe.module';
     ProductsModule,
     CartModule,
     FavoritesModule,
-    StripeModule,
+    StripeModule.forRootAsync(),
   ],
   controllers: [AppController],
   providers: [AppService, FirebaseAdminService, FirebaseAuthGuard],

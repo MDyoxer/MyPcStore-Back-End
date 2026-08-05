@@ -1,23 +1,32 @@
 import { Module, DynamicModule } from '@nestjs/common';
-import { ConfigService, ConfigModule} from '@nestjs/config';
+import { ConfigService, ConfigModule } from '@nestjs/config';
 import { StripeService } from './stripe.service';
 import { StripeController } from './stripe.controller';
+import { OrdersModule } from 'src/orders/orders.module';
+import { AuthModule } from 'src/auth/auth.module';
+import { ClientsModule } from 'src/clients/clients.module';
 
 @Module({
   controllers: [StripeController],
   providers: [StripeService],
 })
 export class StripeModule {
-  static forRoot(): DynamicModule {
+  static forRootAsync(): DynamicModule {
     return {
       module: StripeModule,
-      imports: [ConfigModule],
-      providers : [
+      imports: [ConfigModule, OrdersModule, AuthModule, ClientsModule],  // ← agregar
+      providers: [
         StripeService,
         {
           provide: 'STRIPE_PRIVATE_API_KEY',
-          useFactory: (ConfigService: ConfigService) => 
-            ConfigService.get<string>('STRIPE_PRIVATE_API_KEY'),
+          useFactory: (config: ConfigService) =>
+            config.get<string>('STRIPE_PRIVATE_API_KEY'),
+          inject: [ConfigService],
+        },
+        {
+          provide: 'STRIPE_WEBHOOK_SECRET',
+          useFactory: (config: ConfigService) =>
+            config.get<string>('STRIPE_WEBHOOK_SECRET'),
           inject: [ConfigService],
         },
       ],
