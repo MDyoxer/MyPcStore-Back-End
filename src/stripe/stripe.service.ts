@@ -44,7 +44,7 @@ export class StripeService {
       }
       case 'payment_intent.payment_failed': {
         const paymentIntent = event.data.object as Stripe.PaymentIntent;
-        await this.ordersService.markOrderFailed(paymentIntent.id);
+        this.logger.warn(`payment_intent.payment_failed ${paymentIntent.id}`);
         break;
       }
       default:
@@ -54,24 +54,48 @@ export class StripeService {
     return { received: true };
   }
 
-  async createCheckout(clientId: number) {
-    //read client cart
-    const cartItems = await this.prisma.tbl_carrito.findMany({
+ async createCheckout(clientId: number) {
+  return this.prisma.$transaction(async (tx) => {
+    // el 2º POST concurrente se queda esperando aquí
+    await tx.$queryRaw`SELECT id_c FROM tbl_clientes WHERE id_c = ${clientId} FOR UPDATE`;
+
+    // limpia solo huérfanas sin detalle
+    const unpaidOrders = await tx.tbl_ordenes.findMany({
+      where: {
+        id_c_ord: clientId,
+        pagado_ord: false,
+        tbl_detalles_orden: { none: {} },
+      },
+      select: { id_ord: true, stripe_payment_intent_id_ord: true },
+    });
+
+    if (unpaidOrders.length > 0) {
+      for (const unpaid of unpaidOrders) {
+        if (unpaid.stripe_payment_intent_id_ord) {
+          await this.stripe.paymentIntents
+            .cancel(unpaid.stripe_payment_intent_id_ord)
+            .catch(() => {});
+        }
+      }
+      await tx.tbl_envios.deleteMany({
+        where: { id_ord_env: { in: unpaidOrders.map((o) => o.id_ord) } },
+      });
+      await tx.tbl_ordenes.deleteMany({
+        where: { id_ord: { in: unpaidOrders.map((o) => o.id_ord) } },
+      });
+    }
+
+    // carrito, stock y total (igual que hoy)
+    const cartItems = await tx.tbl_carrito.findMany({
       where: { id_c_car: clientId },
       include: { tbl_productos: true },
     });
-
-    if (cartItems.length === 0) {
-      throw new ConflictException('Cart is empty');
-    }
-    //check stock
+    if (cartItems.length === 0) throw new ConflictException('Cart is empty');
     for (const item of cartItems) {
       if (item.cantidad_car > item.tbl_productos.stock_pt) {
-        throw new ConflictException(`Not enough stock for product ${item.tbl_productos.nombre_pt}`
-        );
+        throw new ConflictException(`Not enough stock for product ${item.tbl_productos.nombre_pt}`);
       }
     }
-    //calculate total in cents
     const totalInCents = cartItems.reduce(
       (acc, item) =>
         acc + Math.round(Number(item.tbl_productos.precio_pt) * 100) * item.cantidad_car,
@@ -80,19 +104,25 @@ export class StripeService {
 
     const paymentIntent = await this.stripe.paymentIntents.create({
       amount: totalInCents,
-      currency: 'mxn',   // TODO: centralizar moneda
+      currency: 'mxn',
       metadata: {
-        clientId: String(clientId), cartItems: JSON.stringify(cartItems.map(item => ({
+        clientId: String(clientId),
+        cartItems: JSON.stringify(cartItems.map(item => ({
           productId: item.id_pt_car,
+          productName: item.tbl_productos.nombre_pt,
           quantity: item.cantidad_car,
-        })))
+        }))),
       },
     });
 
-
-    const order = await this.ordersService.createPendingOrder(
-      clientId, paymentIntent.id, totalInCents / 100,
-    );
+    const order = await tx.tbl_ordenes.create({
+      data: {
+        id_c_ord: clientId,
+        total_ord: totalInCents / 100,
+        stripe_payment_intent_id_ord: paymentIntent.id,
+        tbl_envios: { create: {} },
+      },
+    });
 
     return {
       clientSecret: paymentIntent.client_secret,
@@ -101,5 +131,6 @@ export class StripeService {
       amount: paymentIntent.amount,
       currency: paymentIntent.currency,
     };
-  }
+  });
+}
 }
