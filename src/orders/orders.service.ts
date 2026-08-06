@@ -1,8 +1,12 @@
-import { Injectable, NotFoundException, ConflictException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  ConflictException,
+} from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 @Injectable()
 export class OrdersService {
-  constructor(private readonly prisma: PrismaService) { }
+  constructor(private readonly prisma: PrismaService) {}
   //client orders
   async userOrders(id_c: number) {
     const response = await this.prisma.tbl_ordenes.findMany({
@@ -14,8 +18,8 @@ export class OrdersService {
         total_ord: true,
         pagado_ord: true,
         tbl_envios: {
-          select: { status_env: true }
-        }
+          select: { status_env: true },
+        },
       },
     });
     return response.map((order) => ({
@@ -35,7 +39,7 @@ export class OrdersService {
         tbl_ordenes: { id_c_ord: id_c },
       },
       select: {
-        id_dto:true,
+        id_dto: true,
         id_ord_dto: true,
         cantidad_dto: true,
         precio_guardo_dto: true,
@@ -48,15 +52,15 @@ export class OrdersService {
         },
         tbl_ordenes: {
           include: {
-            tbl_envios:{
-              select: { 
+            tbl_envios: {
+              select: {
                 status_env: true,
                 detalles_env: true,
                 fecha_entrega_estimada_env: true,
-               }
-            }
-          }
-        }
+              },
+            },
+          },
+        },
       },
     });
     return response.map((item) => ({
@@ -68,7 +72,8 @@ export class OrdersService {
       imgProducto: item.tbl_productos.img_pt,
       statusEnvio: item.tbl_ordenes.tbl_envios?.status_env,
       detallesEnvio: item.tbl_ordenes.tbl_envios?.detalles_env,
-      fechaEntregaEstimada: item.tbl_ordenes.tbl_envios?.fecha_entrega_estimada_env,
+      fechaEntregaEstimada:
+        item.tbl_ordenes.tbl_envios?.fecha_entrega_estimada_env,
     }));
   }
 
@@ -97,12 +102,12 @@ export class OrdersService {
           stripe_payment_intent_id_ord: paymentIntentId,
           pagado_ord: false,
         },
-        data: { pagado_ord: true }
+        data: { pagado_ord: true },
       });
 
       if (updated.count === 0) {
         const existing = await tx.tbl_ordenes.findFirst({
-          where: { stripe_payment_intent_id_ord: paymentIntentId, }
+          where: { stripe_payment_intent_id_ord: paymentIntentId },
         });
         if (!existing) throw new NotFoundException('Order not found');
         return existing;
@@ -114,13 +119,13 @@ export class OrdersService {
 
       if (!order) throw new NotFoundException('order not found ');
 
-
       const cartItems = await tx.tbl_carrito.findMany({
         where: { id_c_car: order.id_c_ord },
         include: { tbl_productos: true },
       });
 
-      if (cartItems.length === 0) throw new NotFoundException('No items in cart');
+      if (cartItems.length === 0)
+        throw new NotFoundException('No items in cart');
 
       //evaluate if caritems is equal or lower to stock of product
       for (const item of cartItems) {
@@ -159,7 +164,7 @@ export class OrdersService {
 
       // set the user cart to nothing
       await tx.tbl_carrito.deleteMany({ where: { id_c_car: order.id_c_ord } });
-      
+
       //change to pagada
       return order;
     });

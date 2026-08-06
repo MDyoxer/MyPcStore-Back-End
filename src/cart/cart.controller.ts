@@ -10,7 +10,6 @@ import {
 } from '@nestjs/common';
 import { CartService } from './cart.service';
 import { CreateCartDto } from './dto/create-cart.dto';
-import { UpdateCartDto } from './dto/update-cart.dto';
 import { UpdateCartQuantityDto } from './dto/update-cart-quantity.dto';
 import { FirebaseAuthGuard } from 'src/auth/guard/firebase-auth.guard';
 import { CurrentUser } from 'src/auth/decorator/current-user.decorator';
@@ -33,11 +32,7 @@ export class CartController {
     return await this.cartService.userCart(client.id);
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.cartService.findOne(+id);
-  }
-  //change value from quantity when user wants to change the quantity of a product in the cart 
+  //change value from quantity when user wants to change the quantity of a product in the cart
   @Patch('quantity')
   updateQuantity(
     @Body() updateCartQuantityDto: UpdateCartQuantityDto,
@@ -46,10 +41,6 @@ export class CartController {
     return this.cartService.updateQuantity(updateCartQuantityDto, client);
   }
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateCartDto: UpdateCartDto) {
-    return this.cartService.update(+id, updateCartDto);
-  }
   //delete a product from the cart by id of the cart and the id of the user
   @Delete('removeItem/:id')
   removeItemCart(

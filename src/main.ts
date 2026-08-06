@@ -2,9 +2,10 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { ConfigService } from '@nestjs/config';
 import { ValidationPipe } from '@nestjs/common';
+import { PrismaExceptionFilter } from './common/filters/prisma-exception.filter';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule, { rawBody: true});
+  const app = await NestFactory.create(AppModule, { rawBody: true });
 
   const configService = app.get(ConfigService);
   const corsOrigin =
@@ -15,12 +16,13 @@ async function bootstrap() {
     .filter(Boolean);
 
   app.useGlobalPipes(new ValidationPipe({ transform: true }));
+  app.useGlobalFilters(new PrismaExceptionFilter());
   app.enableCors({
     origin: corsOrigins,
     credentials: true,
   });
 
-  await app.listen(process.env.PORT ?? 3003);
+  await app.listen(configService.get<string>('PORT') ?? 3003);
 }
 bootstrap().catch((error) => {
   console.error(error);

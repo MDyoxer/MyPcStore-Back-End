@@ -1,5 +1,6 @@
 import { Module, DynamicModule } from '@nestjs/common';
 import { ConfigService, ConfigModule } from '@nestjs/config';
+import { ThrottlerModule } from '@nestjs/throttler';
 import { StripeService } from './stripe.service';
 import { StripeController } from './stripe.controller';
 import { OrdersModule } from 'src/orders/orders.module';
@@ -14,7 +15,13 @@ export class StripeModule {
   static forRootAsync(): DynamicModule {
     return {
       module: StripeModule,
-      imports: [ConfigModule, OrdersModule, AuthModule, ClientsModule],  // ← agregar
+      imports: [
+        ConfigModule,
+        ThrottlerModule,
+        OrdersModule,
+        AuthModule,
+        ClientsModule,
+      ],
       providers: [
         StripeService,
         {

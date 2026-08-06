@@ -12,7 +12,7 @@ import { ClientsService } from 'src/clients/clients.service';
 export class FirebaseAuthGuard implements CanActivate {
   constructor(
     private readonly firebaseAdminService: FirebaseAdminService,
-    private readonly ClientService: ClientsService,
+    private readonly clientsService: ClientsService,
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
@@ -30,7 +30,9 @@ export class FirebaseAuthGuard implements CanActivate {
     } catch {
       throw new UnauthorizedException('Invalid token');
     }
-    const client = await this.ClientService.findByFirebaseUid(decodedToken.uid);
+    const client = await this.clientsService.findByFirebaseUid(
+      decodedToken.uid,
+    );
     if (!client) {
       throw new UnauthorizedException('Client not registered');
     }
