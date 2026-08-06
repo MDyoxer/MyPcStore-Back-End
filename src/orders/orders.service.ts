@@ -6,7 +6,7 @@ import {
 import { PrismaService } from 'src/prisma/prisma.service';
 @Injectable()
 export class OrdersService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService) { }
   //client orders
   async userOrders(id_c: number) {
     const response = await this.prisma.tbl_ordenes.findMany({
@@ -17,6 +17,15 @@ export class OrdersService {
         fecha_ord: true,
         total_ord: true,
         pagado_ord: true,
+        tbl_detalles_orden: {
+          include: {
+            tbl_productos: {
+              select: {
+                img_pt: true,
+              },
+            },
+          },
+        },
         tbl_envios: {
           select: { status_env: true },
         },
@@ -28,6 +37,9 @@ export class OrdersService {
       total: order.total_ord,
       pagado: order.pagado_ord,
       statusEnvio: order.tbl_envios?.status_env,
+      imgProductos: order.tbl_detalles_orden.map(
+        (d) => d.tbl_productos.img_pt,
+      ),
     }));
   }
 
