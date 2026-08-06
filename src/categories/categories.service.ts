@@ -11,13 +11,12 @@ export class CategoriesService {
   }
   async findAllCat() {
     const categories = await this.prisma.cat_categoriasprod.findMany({
-      where: {is_active_ctp: 1},
+      where: { is_active_ctp: 1 },
       select: {
         id_ctp: true,
         categoria_ctp: true,
         slug_ctp: true,
-
-      }
+      },
     });
     return categories.map((category) => ({
       id: category.id_ctp,

@@ -15,6 +15,8 @@ model tbl_carrito {
   cantidad_car  Int
   tbl_clientes  tbl_clientes  @relation(fields: [id_c_car], references: [id_c], onDelete: NoAction, onUpdate: NoAction)
   tbl_productos tbl_productos @relation(fields: [id_pt_car], references: [id_pt], onDelete: NoAction, onUpdate: NoAction)
+
+  @@unique([id_c_car, id_pt_car], map: "tbl_carrito_cliente_producto_unique")
 }
 
 model tbl_clientes {
@@ -23,6 +25,9 @@ model tbl_clientes {
   correo_c      String          @unique @db.VarChar(255)
   is_active_c   Int             @default(1) @db.SmallInt
   firebase_uid  String          @unique(map: "tbl_clientes_firebaseuid_key") @db.VarChar(255)
+  stripeid_c    String?         @unique @db.VarChar(255)
+  celular_c     String?         @db.VarChar(255)
+  creado_c      DateTime?       @default(now()) @db.Timestamp(6)
   tbl_carrito   tbl_carrito[]
   tbl_favoritos tbl_favoritos[]
   tbl_ordenes   tbl_ordenes[]
@@ -47,14 +52,16 @@ model tbl_marcas {
 }
 
 model tbl_ordenes {
-  id_ord             Int                  @id @default(autoincrement())
-  id_c_ord           Int
-  fecha_ord          DateTime             @default(now()) @db.Timestamp(6)
-  total_ord          Decimal              @db.Decimal(10, 2)
-  estado_ord         String               @default("Pendiente") @db.VarChar(255)
-  is_active_ord      Int?                 @default(1) @db.SmallInt
-  tbl_detalles_orden tbl_detalles_orden[]
-  tbl_clientes       tbl_clientes         @relation(fields: [id_c_ord], references: [id_c], onDelete: NoAction, onUpdate: NoAction)
+  id_ord                       Int                  @id @default(autoincrement())
+  id_c_ord                     Int
+  fecha_ord                    DateTime             @default(now()) @db.Timestamp(6)
+  total_ord                    Decimal              @db.Decimal(10, 2)
+  is_active_ord                Int?                 @default(1) @db.SmallInt
+  stripe_payment_intent_id_ord String?              @db.VarChar(255)
+  pagado_ord                   Boolean              @default(false)
+  tbl_detalles_orden           tbl_detalles_orden[]
+  tbl_envios                   tbl_envios?
+  tbl_clientes                 tbl_clientes         @relation(fields: [id_c_ord], references: [id_c], onDelete: NoAction, onUpdate: NoAction)
 }
 
 model tbl_productos {
@@ -93,4 +100,13 @@ model tbl_favoritos {
   tbl_productos tbl_productos @relation(fields: [id_pt_fav], references: [id_pt], onDelete: NoAction, onUpdate: NoAction, map: "fk_fav_producto")
 
   @@unique([id_c_fav, id_pt_fav], map: "unq_cliente_producto_fav")
+}
+
+model tbl_envios {
+  id_env                     Int         @id @default(autoincrement())
+  id_ord_env                 Int         @unique
+  status_env                 String      @default("pendiente") @db.VarChar(50)
+  fecha_entrega_estimada_env DateTime?   @default(dbgenerated("((date_trunc('hour'::text, now()) + (floor((random() * ((7 * 24))::double precision)) * '01:00:00'::interval)) + ((floor((random() * (12)::double precision)) * (5)::double precision) * '00:01:00'::interval))")) @db.Timestamp(6)
+  detalles_env               String?     @default("Tu pedido ya ha sido recibido en nuestras instalaciones.") @db.VarChar(255)
+  tbl_ordenes                tbl_ordenes @relation(fields: [id_ord_env], references: [id_ord], onDelete: NoAction, onUpdate: NoAction)
 }

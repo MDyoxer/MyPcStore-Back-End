@@ -6,6 +6,6 @@ import { ClientsModule } from 'src/clients/clients.module';
 @Module({
   controllers: [FavoritesController],
   providers: [FavoritesService],
-  imports: [AuthModule,ClientsModule],
+  imports: [AuthModule, ClientsModule],
 })
 export class FavoritesModule {}
