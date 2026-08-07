@@ -4,6 +4,7 @@ import {
   Logger,
   ConflictException,
   BadRequestException,
+  NotFoundException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { randomUUID } from 'node:crypto';
@@ -11,6 +12,7 @@ import Stripe from 'stripe';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { OrdersService } from 'src/orders/orders.service';
 import { toCents, centsToDecimal } from 'src/common/money.util';
+import { DirectCheckoutDto } from './dto/direct-checkout.dto';
 @Injectable()
 //TODO: warning stripe key will expire in 90 days: october 2026
 export class StripeService {
@@ -136,6 +138,7 @@ export class StripeService {
             ),
           },
         },
+        // idempotency key to avoid double charges if the request is retried
         { idempotencyKey: `checkout_${randomUUID()}` },
       );
 
@@ -155,6 +158,86 @@ export class StripeService {
         amount: paymentIntent.amount,
         currency: paymentIntent.currency,
       };
+    });
+  }
+  //Create a direct checkout for a single product
+  async createDirectCheckout(clientId: number, dto: DirectCheckoutDto) {
+    return this.prisma.$transaction(async (tx) => {
+      //wait for post
+      await tx.$queryRaw`SELECT id_c FROM tbl_clientes WHERE id_c =${clientId} FOR UPDATE`;
+
+      //clean 
+      const unpaidOrders = await tx.tbl_ordenes.findMany({
+        where: {
+          id_c_ord: clientId,
+          pagado_ord: false,
+          tbl_detalles_orden: { none: {} },
+        },
+        select: { id_ord: true, stripe_payment_intent_id_ord: true },
+      });
+
+      if (unpaidOrders.length > 0) {
+        for (const unpaid of unpaidOrders) {
+          if (unpaid.stripe_payment_intent_id_ord) {
+            await this.stripe.paymentIntents
+              .cancel(unpaid.stripe_payment_intent_id_ord)
+              .catch((err: Error) =>
+                this.logger.debug(
+                  `No se pudo cancelar el PaymentIntent huérfano ${unpaid.stripe_payment_intent_id_ord}: ${err.message}`,
+                ),
+              );
+          }
+        }
+        await tx.tbl_envios.deleteMany({
+          where: { id_ord_env: { in: unpaidOrders.map((o) => o.id_ord) } },
+        });
+        await tx.tbl_ordenes.deleteMany({
+          where: { id_ord: { in: unpaidOrders.map((o) => o.id_ord) } },
+        });
+      }
+
+      const product = await tx.tbl_productos.findUnique({ where: { id_pt: dto.productId } });
+      if (!product) throw new NotFoundException(`Producto ${dto.productId} no encontrado`);
+      if (dto.quantity > product.stock_pt) {
+        throw new ConflictException(`Not enough stock for product ${product.nombre_pt}`);
+      }
+
+      const totalInCents = toCents(product.precio_pt ?? 0) * dto.quantity;
+      const paymentIntent = await this.stripe.paymentIntents.create(
+        {
+          amount: totalInCents,
+          currency: this.config.get<string>('STRIPE_CURRENCY') ?? 'mxn',
+          metadata: {
+            clientId: String(clientId),
+            productId: String(dto.productId),
+            quantity: String(dto.quantity),
+          },
+        },
+        { idempotencyKey: `direct_checkout_${randomUUID()}`, }
+      );
+      const order = await tx.tbl_ordenes.create({
+        data: {
+          id_c_ord: clientId,
+          total_ord: centsToDecimal(totalInCents),
+          stripe_payment_intent_id_ord: paymentIntent.id,
+          tbl_envios: { create: {} },
+          tbl_detalles_orden: {
+            create: {
+              id_pt_dto: dto.productId,
+              cantidad_dto: dto.quantity,
+              precio_guardo_dto: product.precio_pt,
+            },
+          },
+        },
+      });
+
+      return {
+        clientSecret: paymentIntent.client_secret,
+        paymentIntentId: paymentIntent.id,
+        orderId: order.id_ord,
+        amount: paymentIntent.amount,
+        currency: paymentIntent.currency,
+      }
     });
   }
 }

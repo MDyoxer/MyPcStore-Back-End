@@ -127,9 +127,22 @@ export class OrdersService {
 
       const order = await tx.tbl_ordenes.findFirst({
         where: { stripe_payment_intent_id_ord: paymentIntentId },
+        include: { tbl_detalles_orden: true },
       });
 
       if (!order) throw new NotFoundException('order not found ');
+      //direct checkout
+      if (order.tbl_detalles_orden.length > 0) {
+        for (const d of order.tbl_detalles_orden) {
+          const r = await tx.tbl_productos.updateMany({
+            where: { id_pt: d.id_pt_dto, stock_pt: { gte: d.cantidad_dto } },
+            data: { stock_pt: { decrement: d.cantidad_dto } },
+          });
+          if (r.count === 0)
+            throw new ConflictException(`Stock insuficiente para el producto con id ${d.id_pt_dto}`);
+        }
+        return order;
+      }
 
       const cartItems = await tx.tbl_carrito.findMany({
         where: { id_c_car: order.id_c_ord },
