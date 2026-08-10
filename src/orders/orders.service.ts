@@ -6,7 +6,7 @@ import {
 import { PrismaService } from 'src/prisma/prisma.service';
 @Injectable()
 export class OrdersService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService) { }
   //client orders
   async userOrders(id_c: number) {
     const response = await this.prisma.tbl_ordenes.findMany({
@@ -17,6 +17,15 @@ export class OrdersService {
         fecha_ord: true,
         total_ord: true,
         pagado_ord: true,
+        tbl_detalles_orden: {
+          include: {
+            tbl_productos: {
+              select: {
+                img_pt: true,
+              },
+            },
+          },
+        },
         tbl_envios: {
           select: { status_env: true },
         },
@@ -28,6 +37,9 @@ export class OrdersService {
       total: order.total_ord,
       pagado: order.pagado_ord,
       statusEnvio: order.tbl_envios?.status_env,
+      imgProductos: order.tbl_detalles_orden.map(
+        (d) => d.tbl_productos.img_pt,
+      ),
     }));
   }
 
@@ -115,9 +127,22 @@ export class OrdersService {
 
       const order = await tx.tbl_ordenes.findFirst({
         where: { stripe_payment_intent_id_ord: paymentIntentId },
+        include: { tbl_detalles_orden: true },
       });
 
       if (!order) throw new NotFoundException('order not found ');
+      //direct checkout
+      if (order.tbl_detalles_orden.length > 0) {
+        for (const d of order.tbl_detalles_orden) {
+          const r = await tx.tbl_productos.updateMany({
+            where: { id_pt: d.id_pt_dto, stock_pt: { gte: d.cantidad_dto } },
+            data: { stock_pt: { decrement: d.cantidad_dto } },
+          });
+          if (r.count === 0)
+            throw new ConflictException(`Stock insuficiente para el producto con id ${d.id_pt_dto}`);
+        }
+        return order;
+      }
 
       const cartItems = await tx.tbl_carrito.findMany({
         where: { id_c_car: order.id_c_ord },

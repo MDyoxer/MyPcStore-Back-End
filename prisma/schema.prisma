@@ -28,7 +28,9 @@ model tbl_clientes {
   stripeid_c    String?         @unique @db.VarChar(255)
   celular_c     String?         @db.VarChar(255)
   creado_c      DateTime?       @default(now()) @db.Timestamp(6)
+  id_rol_c      Int             @default(1)
   tbl_carrito   tbl_carrito[]
+  tbl_roles     tbl_roles       @relation(fields: [id_rol_c], references: [id_rol], onDelete: NoAction, onUpdate: NoAction)
   tbl_favoritos tbl_favoritos[]
   tbl_ordenes   tbl_ordenes[]
 }
@@ -109,4 +111,11 @@ model tbl_envios {
   fecha_entrega_estimada_env DateTime?   @default(dbgenerated("((date_trunc('hour'::text, now()) + (floor((random() * ((7 * 24))::double precision)) * '01:00:00'::interval)) + ((floor((random() * (12)::double precision)) * (5)::double precision) * '00:01:00'::interval))")) @db.Timestamp(6)
   detalles_env               String?     @default("Tu pedido ya ha sido recibido en nuestras instalaciones.") @db.VarChar(255)
   tbl_ordenes                tbl_ordenes @relation(fields: [id_ord_env], references: [id_ord], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model tbl_roles {
+  id_rol        Int            @id @default(autoincrement())
+  rol_rol       String         @db.VarChar(255)
+  is_active_rol Int            @default(1) @db.SmallInt
+  tbl_clientes  tbl_clientes[]
 }
