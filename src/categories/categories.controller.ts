@@ -5,17 +5,21 @@ import {
   Body,
   Patch,
   Param,
+  UseGuards,
   Delete,
 } from '@nestjs/common';
 import { CategoriesService } from './categories.service';
 import { CreateCategoryDto } from './dto/create-category.dto';
 import { UpdateCategoryDto } from './dto/update-category.dto';
+import { AdminEmailGuard } from 'src/auth/guard/admin-email.guard';
+import { FirebaseAuthGuard } from 'src/auth/guard/firebase-auth.guard';
 
 @Controller('categories')
 export class CategoriesController {
-  constructor(private readonly categoriesService: CategoriesService) {}
+  constructor(private readonly categoriesService: CategoriesService) { }
 
   @Post()
+  @UseGuards(FirebaseAuthGuard, AdminEmailGuard)
   create(@Body() createCategoryDto: CreateCategoryDto) {
     return this.categoriesService.create(createCategoryDto);
   }
@@ -31,6 +35,7 @@ export class CategoriesController {
   }
 
   @Patch(':id')
+  @UseGuards(FirebaseAuthGuard, AdminEmailGuard)
   update(
     @Param('id') id: string,
     @Body() updateCategoryDto: UpdateCategoryDto,
@@ -39,6 +44,7 @@ export class CategoriesController {
   }
 
   @Delete(':id')
+  @UseGuards(FirebaseAuthGuard, AdminEmailGuard)
   remove(@Param('id') id: string) {
     return this.categoriesService.remove(+id);
   }

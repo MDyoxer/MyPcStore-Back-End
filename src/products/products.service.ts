@@ -2,12 +2,37 @@ import { Injectable } from '@nestjs/common';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
+import { buildStoragePathFromSegments, uploadFileToStorageAndGetSignedUrl } from 'src/utils/firebase-storage-util';
 @Injectable()
 export class ProductsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService) { }
 
-  create(createProductDto: CreateProductDto) {
-    return 'This action adds a new product';
+  async newProduct(dto: CreateProductDto,file: Express.Multer.File) {
+    try {
+      let imgUrl: string | null = dto.imagen_prod;
+
+      if(file) {
+        const objectPath = buildStoragePathFromSegments(['products'], file);
+        imgUrl = await uploadFileToStorageAndGetSignedUrl(file, objectPath);
+      }
+
+      const resposnse = await this.prisma.tbl_productos.create({
+        data: {
+          nombre_pt: dto.nombre_prod,
+          precio_pt: dto.precio_prod,
+          img_pt: imgUrl,
+          specs_pt: dto.specs_prod,
+          descripcion_pt: dto.descripcion_prod,
+          stock_pt: dto.stock_prod,
+          id_ctp_pt: dto.id_ctp_prod,
+          id_mc_pt: dto.id_marca_prod
+        }
+      })
+      return resposnse;
+    } catch (error) {
+      console.error('Error creating new product:', error);
+      throw new Error('Error creating new product');
+    }
   }
 
   async findAllProducts() {
@@ -95,11 +120,55 @@ export class ProductsService {
     }
   }
 
-  update(id: number, updateProductDto: UpdateProductDto) {
-    return `This action updates a #${id} product`;
+  async updateProd(idProd: number, dto: UpdateProductDto) {
+    try {
+      const response = await this.prisma.tbl_productos.update({
+        where: { id_pt: idProd },
+        data: {
+          nombre_pt: dto.nombre_prod,
+          precio_pt: dto.precio_prod,
+          stock_pt: dto.stock_prod,
+          img_pt: dto.imagen_prod,
+          descripcion_pt: dto.descripcion_prod,
+          specs_pt: dto.specs_prod,
+          id_ctp_pt: dto.id_ctp_prod,
+          id_mc_pt: dto.id_marca_prod,
+        },
+      });
+      return response;
+    } catch (error) {
+      console.error('Error updating product:', error);
+      throw new Error('Error updating product');
+    }
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} product`;
+  async desactivateProd(idProd: number) {
+    try {
+      const response = await this.prisma.tbl_productos.update({
+        where: { id_pt: idProd },
+        data: {
+          is_active_pt: 0,
+        },
+      });
+      return response;
+    } catch (error) {
+      console.error('Error desactivating product:', error);
+      throw new Error('Error desactivating product');
+    }
+  }
+
+ async activateProd(idProd: number) {
+    try {
+      const response = await this.prisma.tbl_productos.update({
+        where: { id_pt: idProd },
+        data: {
+          is_active_pt: 1,
+        },
+      });
+      return response;
+    } catch (error) {
+      console.error('Error activating product:', error);
+      throw new Error('Error activating product');
+    }
   }
 }
