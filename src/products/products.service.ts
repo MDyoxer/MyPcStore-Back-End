@@ -6,12 +6,37 @@ import { buildStoragePathFromSegments, uploadFileToStorageAndGetSignedUrl } from
 @Injectable()
 export class ProductsService {
   constructor(private readonly prisma: PrismaService) { }
+  //USED ON findAllProductsAdmin and findAllProducts
+  private readonly selectProduct = {
+    id_pt: true,
+    nombre_pt: true,
+    precio_pt: true,
+    img_pt: true,
+    stock_pt: true,
+    is_active_pt: true,
+    cat_categoria_pt: { select: { categoria_ctp: true } },
+    tbl_marcas: { select: { marca_mc: true } },
+  };
 
-  async newProduct(dto: CreateProductDto,file: Express.Multer.File) {
+  private mapProduct(p: any) {
+    return {
+      id: p.id_pt,
+      categoria: p.cat_categoria_pt.categoria_ctp,
+      marca: p.tbl_marcas?.marca_mc || 'SIN MARCA',
+      nombre: p.nombre_pt,
+      precio: p.precio_pt,
+      imagen: p.img_pt,
+      stock: p.stock_pt,
+      activo: p.is_active_pt,
+    };
+  }
+
+
+  async newProduct(dto: CreateProductDto, file: Express.Multer.File) {
     try {
       let imgUrl: string | null = dto.imagen_prod;
 
-      if(file) {
+      if (file) {
         const objectPath = buildStoragePathFromSegments(['products'], file);
         imgUrl = await uploadFileToStorageAndGetSignedUrl(file, objectPath);
       }
@@ -36,40 +61,13 @@ export class ProductsService {
   }
 
   async findAllProducts() {
-    try {
-      const response = await this.prisma.tbl_productos.findMany({
-        where: { is_active_pt: 1 },
-        select: {
-          id_pt: true,
-          nombre_pt: true,
-          precio_pt: true,
-          img_pt: true,
-          stock_pt: true,
-          cat_categoria_pt: {
-            select: {
-              categoria_ctp: true,
-            },
-          },
-          tbl_marcas: {
-            select: {
-              marca_mc: true,
-            },
-          },
-        },
-      });
-      return response.map((producto) => ({
-        id: producto.id_pt,
-        categoria: producto.cat_categoria_pt.categoria_ctp,
-        marca: producto.tbl_marcas?.marca_mc || 'SIN MARCA',
-        nombre: producto.nombre_pt,
-        precio: producto.precio_pt,
-        imagen: producto.img_pt,
-        stock: producto.stock_pt,
-      }));
-    } catch (error) {
-      console.error('Error finding all products:', error);
-      throw new Error('Error finding all products');
-    }
+    const r = await this.prisma.tbl_productos.findMany({ where: { is_active_pt: 1 }, select: this.selectProduct });
+    return r.map(this.mapProduct);
+  }
+
+  async findAllProductsAdmin() {
+    const r = await this.prisma.tbl_productos.findMany({ select: this.selectProduct });
+    return r.map(this.mapProduct);
   }
 
   async productDetails(id: number) {
@@ -157,7 +155,7 @@ export class ProductsService {
     }
   }
 
- async activateProd(idProd: number) {
+  async activateProd(idProd: number) {
     try {
       const response = await this.prisma.tbl_productos.update({
         where: { id_pt: idProd },
