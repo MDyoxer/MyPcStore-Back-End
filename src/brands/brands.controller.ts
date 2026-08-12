@@ -17,11 +17,11 @@ import { AdminEmailGuard } from 'src/auth/guard/admin-email.guard';
 export class BrandsController {
   constructor(private readonly brandsService: BrandsService) {}
 
-  @Post()
+  @Post('newBrand')
   @UseGuards(FirebaseAuthGuard, AdminEmailGuard)
-  create(@Body() createBrandDto: CreateBrandDto
+  newBrand(@Body() createBrandDto: CreateBrandDto
 ) {
-    return this.brandsService.create(createBrandDto);
+    return this.brandsService.newBrand(createBrandDto);
   }
 
   @Get('allBrands')
