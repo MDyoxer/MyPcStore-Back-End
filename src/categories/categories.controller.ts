@@ -18,10 +18,10 @@ import { FirebaseAuthGuard } from 'src/auth/guard/firebase-auth.guard';
 export class CategoriesController {
   constructor(private readonly categoriesService: CategoriesService) { }
 
-  @Post()
+  @Post('newCat')
   @UseGuards(FirebaseAuthGuard, AdminEmailGuard)
-  create(@Body() createCategoryDto: CreateCategoryDto) {
-    return this.categoriesService.create(createCategoryDto);
+  newCategorie(@Body() createCategoryDto: CreateCategoryDto) {
+    return this.categoriesService.newCategorie(createCategoryDto);
   }
 
   @Get('allCategories')

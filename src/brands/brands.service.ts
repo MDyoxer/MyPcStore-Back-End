@@ -6,9 +6,15 @@ import { PrismaService } from 'src/prisma/prisma.service';
 export class BrandsService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async create(createBrandDto: CreateBrandDto) {
-    return 'This action adds a new brand';
+  async newBrand(createBrandDto: CreateBrandDto) {
+    const response = await this.prisma.tbl_marcas.create({
+      data: {
+        marca_mc: createBrandDto.marca,
+      },
+    });
+    return response;
   }
+
   //find all brands
   async findAllBrands() {
     const brands = await this.prisma.tbl_marcas.findMany({
@@ -28,8 +34,11 @@ export class BrandsService {
     return `This action returns a #${id} brand`;
   }
 
-  update(id: number, updateBrandDto: UpdateBrandDto) {
-    return `This action updates a #${id} brand`;
+  async update(id: number, updateBrandDto: UpdateBrandDto) {
+    return this.prisma.tbl_marcas.update({
+      where: { id_mc: id },
+      data: { marca_mc: updateBrandDto.marca },
+    });
   }
 
   remove(id: number) {

@@ -40,6 +40,12 @@ export class ProductsController {
     return await this.productsService.findAllProducts();
   }
 
+    //get all products for admin
+  @Get('findAllProductsAdmin')
+  async findAllProductsAdmin() {
+    return await this.productsService.findAllProductsAdmin();
+  }
+
   //get product details by id
   @Get('product/:id')
   async productDetails(@Param('id') id: string) {
@@ -58,7 +64,7 @@ export class ProductsController {
     return this.productsService.desactivateProd(+id);
   }
   //soft delete activate product
-  @Patch('active/:id')
+  @Patch('activate/:id')
   @UseGuards(FirebaseAuthGuard, AdminEmailGuard)
   activateProd(@Param('id') id: string) {
     return this.productsService.activateProd(+id);
