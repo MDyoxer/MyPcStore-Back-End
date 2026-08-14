@@ -40,6 +40,16 @@ export class ProductsController {
     return await this.productsService.findAllProducts();
   }
 
+<<<<<<< Updated upstream
+=======
+    //get all products for admin
+  @Get('findAllProductsAdmin')
+  @UseGuards(FirebaseAuthGuard, AdminEmailGuard)
+  async findAllProductsAdmin() {
+    return await this.productsService.findAllProductsAdmin();
+  }
+
+>>>>>>> Stashed changes
   //get product details by id
   @Get('product/:id')
   async productDetails(@Param('id') id: string) {
