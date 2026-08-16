@@ -18,6 +18,7 @@ export class ProductsService {
     tbl_marcas: { select: { marca_mc: true } },
   };
 
+<<<<<<< Updated upstream
   private mapProduct(p: any) {
     return {
       id: p.id_pt,
@@ -58,6 +59,12 @@ export class ProductsService {
       console.error('Error creating new product:', error);
       throw new Error('Error creating new product');
     }
+=======
+  async create(createProductDto: CreateProductDto) {
+    return this.prisma.tbl_productos.create({
+      data: createProductDto,
+    });
+>>>>>>> Stashed changes
   }
 
   async findAllProducts() {
@@ -118,6 +125,7 @@ export class ProductsService {
     }
   }
 
+<<<<<<< Updated upstream
   async updateProd(idProd: number, dto: UpdateProductDto) {
     try {
       const response = await this.prisma.tbl_productos.update({
@@ -168,5 +176,19 @@ export class ProductsService {
       console.error('Error activating product:', error);
       throw new Error('Error activating product');
     }
+=======
+  async update(id: number, updateProductDto: UpdateProductDto) {
+    return this.prisma.tbl_productos.update({
+      where: { id_pt: id },
+      data: updateProductDto,
+    });
+  }
+
+  async remove(id: number) {
+    return this.prisma.tbl_productos.update({
+      where: { id_pt: id },
+      data: { is_active_pt: 0 },
+    });
+>>>>>>> Stashed changes
   }
 }

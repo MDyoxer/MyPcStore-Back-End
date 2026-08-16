@@ -8,6 +8,10 @@ import { ClientsService } from 'src/clients/clients.service';
 import { GoogleLoginDto } from './dto/auth-google.dto';
 import { RegisterDto } from './dto/register.dto';
 import { Prisma } from 'generated/prisma/client';
+import type { DecodedIdToken } from 'firebase-admin/auth';
+
+type DecodedToken = DecodedIdToken & { name?: string };
+
 @Injectable()
 export class AuthService {
   constructor(
@@ -16,7 +20,7 @@ export class AuthService {
   ) {}
 
   async login(googleLoginDto: GoogleLoginDto) {
-    let decodedToken;
+    let decodedToken: DecodedToken;
     try {
       decodedToken = await this.firebaseAdminService.verifyIdToken(
         googleLoginDto.idToken,
@@ -35,7 +39,7 @@ export class AuthService {
   }
 
   async register(registerDto: RegisterDto) {
-    let decodedToken;
+    let decodedToken: DecodedToken;
     try {
       decodedToken = await this.firebaseAdminService.verifyIdToken(
         registerDto.idToken,
@@ -45,7 +49,7 @@ export class AuthService {
     }
 
     const uid = decodedToken.uid;
-    const email = decodedToken.email;
+    const email = decodedToken.email ?? uid;
 
     const existing = await this.clientsService.findByFirebaseUid(uid);
     if (existing) {

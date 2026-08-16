@@ -10,7 +10,6 @@ import {
 } from '@nestjs/common';
 import { FavoritesService } from './favorites.service';
 import { CreateFavoriteDto } from './dto/create-favorite.dto';
-import { UpdateFavoriteDto } from './dto/update-favorite.dto';
 import { FirebaseAuthGuard } from 'src/auth/guard/firebase-auth.guard';
 import { CurrentUser } from 'src/auth/decorator/current-user.decorator';
 import { type AuthenticatedClient } from 'src/auth/types/authenticated-client';

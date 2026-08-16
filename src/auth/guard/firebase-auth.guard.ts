@@ -3,10 +3,12 @@ import {
   ExecutionContext,
   Injectable,
   UnauthorizedException,
-  UseFilters,
 } from '@nestjs/common';
 import { FirebaseAdminService } from '../firebase-admin.service';
 import { ClientsService } from 'src/clients/clients.service';
+import type { Request } from 'express';
+import type { AuthenticatedClient } from '../types/authenticated-client';
+import type { DecodedIdToken } from 'firebase-admin/auth';
 
 @Injectable()
 export class FirebaseAuthGuard implements CanActivate {
@@ -16,7 +18,9 @@ export class FirebaseAuthGuard implements CanActivate {
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
-    const request = context.switchToHttp().getRequest();
+    const request = context
+      .switchToHttp()
+      .getRequest<Request & { user: AuthenticatedClient }>();
     const authHeader: string | undefined = request.headers['authorization'];
 
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
@@ -24,7 +28,7 @@ export class FirebaseAuthGuard implements CanActivate {
     }
 
     const idToken = authHeader.slice(7);
-    let decodedToken;
+    let decodedToken: DecodedIdToken;
     try {
       decodedToken = await this.firebaseAdminService.verifyIdToken(idToken);
     } catch {

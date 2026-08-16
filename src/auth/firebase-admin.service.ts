@@ -1,6 +1,6 @@
 import { Injectable, OnModuleInit } from '@nestjs/common';
 import { initializeApp, getApps, cert } from 'firebase-admin/app';
-import { getAuth } from 'firebase-admin/auth';
+import { getAuth, type DecodedIdToken } from 'firebase-admin/auth';
 @Injectable()
 export class FirebaseAdminService implements OnModuleInit {
   onModuleInit() {
@@ -15,7 +15,7 @@ export class FirebaseAdminService implements OnModuleInit {
       });
     }
   }
-  async verifyIdToken(idToken: string) {
+  async verifyIdToken(idToken: string): Promise<DecodedIdToken> {
     return await getAuth().verifyIdToken(idToken);
   }
 }

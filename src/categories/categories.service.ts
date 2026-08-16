@@ -6,6 +6,7 @@ import { PrismaService } from 'src/prisma/prisma.service';
 @Injectable()
 export class CategoriesService {
   constructor(private readonly prisma: PrismaService) {}
+<<<<<<< Updated upstream
   async newCategorie(dto: CreateCategoryDto) {
    const response = await this.prisma.cat_categoriasprod.create({
     data: {
@@ -13,6 +14,16 @@ export class CategoriesService {
     }
   });
   return response;
+=======
+  async create(createCategoryDto: CreateCategoryDto) {
+    return this.prisma.cat_categoriasprod.create({
+      data: {
+        categoria_ctp: createCategoryDto.categoria_ctp,
+        slug_ctp: createCategoryDto.slug_ctp,
+        is_active_ctp: createCategoryDto.is_active_ctp ?? 1,
+      },
+    });
+>>>>>>> Stashed changes
   }
 
   async findAllCat() {
@@ -31,18 +42,27 @@ export class CategoriesService {
     }));
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} category`;
+  async findOne(id: number) {
+    return this.prisma.cat_categoriasprod.findUnique({
+      where: { id_ctp: id },
+    });
   }
 
   async update(id: number, updateCategoryDto: UpdateCategoryDto) {
     return this.prisma.cat_categoriasprod.update({
       where: { id_ctp: id },
+<<<<<<< Updated upstream
       data: { categoria_ctp: updateCategoryDto.categoria },
+=======
+      data: updateCategoryDto,
+>>>>>>> Stashed changes
     });
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} category`;
+  async remove(id: number) {
+    return this.prisma.cat_categoriasprod.update({
+      where: { id_ctp: id },
+      data: { is_active_ctp: 0 },
+    });
   }
 }

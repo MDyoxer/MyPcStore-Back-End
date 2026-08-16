@@ -57,6 +57,7 @@ export class ProductsController {
   updateProd(@Param('id') id: string, @Body() updateProductDto: UpdateProductDto) {
     return this.productsService.updateProd(+id, updateProductDto);
   }
+<<<<<<< Updated upstream
   //soft delete desactivate product
   @Patch('desactive/:id')
   @UseGuards(FirebaseAuthGuard, AdminEmailGuard)
@@ -68,5 +69,11 @@ export class ProductsController {
   @UseGuards(FirebaseAuthGuard, AdminEmailGuard)
   activateProd(@Param('id') id: string) {
     return this.productsService.activateProd(+id);
+=======
+  //soft delete product
+  @Delete('product/:id')
+  remove(@Param('id') id: string) {
+    return this.productsService.remove(+id);
+>>>>>>> Stashed changes
   }
 }

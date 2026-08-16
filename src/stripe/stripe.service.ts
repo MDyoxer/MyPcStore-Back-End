@@ -166,7 +166,7 @@ export class StripeService {
       //wait for post
       await tx.$queryRaw`SELECT id_c FROM tbl_clientes WHERE id_c =${clientId} FOR UPDATE`;
 
-      //clean 
+      //clean
       const unpaidOrders = await tx.tbl_ordenes.findMany({
         where: {
           id_c_ord: clientId,
@@ -196,10 +196,15 @@ export class StripeService {
         });
       }
 
-      const product = await tx.tbl_productos.findUnique({ where: { id_pt: dto.productId } });
-      if (!product) throw new NotFoundException(`Producto ${dto.productId} no encontrado`);
+      const product = await tx.tbl_productos.findUnique({
+        where: { id_pt: dto.productId },
+      });
+      if (!product)
+        throw new NotFoundException(`Producto ${dto.productId} no encontrado`);
       if (dto.quantity > product.stock_pt) {
-        throw new ConflictException(`Not enough stock for product ${product.nombre_pt}`);
+        throw new ConflictException(
+          `Not enough stock for product ${product.nombre_pt}`,
+        );
       }
 
       const totalInCents = toCents(product.precio_pt ?? 0) * dto.quantity;
@@ -213,7 +218,7 @@ export class StripeService {
             quantity: String(dto.quantity),
           },
         },
-        { idempotencyKey: `direct_checkout_${randomUUID()}`, }
+        { idempotencyKey: `direct_checkout_${randomUUID()}` },
       );
       const order = await tx.tbl_ordenes.create({
         data: {
@@ -237,7 +242,7 @@ export class StripeService {
         orderId: order.id_ord,
         amount: paymentIntent.amount,
         currency: paymentIntent.currency,
-      }
+      };
     });
   }
 }

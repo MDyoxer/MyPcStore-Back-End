@@ -6,6 +6,7 @@ import { PrismaService } from 'src/prisma/prisma.service';
 export class BrandsService {
   constructor(private readonly prisma: PrismaService) {}
 
+<<<<<<< Updated upstream
   async newBrand(createBrandDto: CreateBrandDto) {
     const response = await this.prisma.tbl_marcas.create({
       data: {
@@ -13,6 +14,15 @@ export class BrandsService {
       },
     });
     return response;
+=======
+  async create(createBrandDto: CreateBrandDto) {
+    return this.prisma.tbl_marcas.create({
+      data: {
+        marca_mc: createBrandDto.marca_mc,
+        is_active_mc: createBrandDto.is_active_mc ?? 1,
+      },
+    });
+>>>>>>> Stashed changes
   }
 
   //find all brands
@@ -30,18 +40,27 @@ export class BrandsService {
     }));
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} brand`;
+  async findOne(id: number) {
+    return this.prisma.tbl_marcas.findUnique({
+      where: { id_mc: id },
+    });
   }
 
   async update(id: number, updateBrandDto: UpdateBrandDto) {
     return this.prisma.tbl_marcas.update({
       where: { id_mc: id },
+<<<<<<< Updated upstream
       data: { marca_mc: updateBrandDto.marca },
+=======
+      data: updateBrandDto,
+>>>>>>> Stashed changes
     });
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} brand`;
+  async remove(id: number) {
+    return this.prisma.tbl_marcas.update({
+      where: { id_mc: id },
+      data: { is_active_mc: 0 },
+    });
   }
 }

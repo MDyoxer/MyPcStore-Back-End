@@ -32,7 +32,7 @@ export class StripeController {
   createDirectCheckout(
     @CurrentUser() client: AuthenticatedClient,
     @Body() dto: DirectCheckoutDto,
-  ){
+  ) {
     return this.stripeService.createDirectCheckout(client.id, dto);
   }
 
@@ -46,6 +46,4 @@ export class StripeController {
     }
     return this.stripeService.handleWebhookEvent(req.rawBody, signature);
   }
-
-  
 }

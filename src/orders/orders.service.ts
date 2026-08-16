@@ -6,7 +6,7 @@ import {
 import { PrismaService } from 'src/prisma/prisma.service';
 @Injectable()
 export class OrdersService {
-  constructor(private readonly prisma: PrismaService) { }
+  constructor(private readonly prisma: PrismaService) {}
   //client orders
   async userOrders(id_c: number) {
     const response = await this.prisma.tbl_ordenes.findMany({
@@ -37,9 +37,7 @@ export class OrdersService {
       total: order.total_ord,
       pagado: order.pagado_ord,
       statusEnvio: order.tbl_envios?.status_env,
-      imgProductos: order.tbl_detalles_orden.map(
-        (d) => d.tbl_productos.img_pt,
-      ),
+      imgProductos: order.tbl_detalles_orden.map((d) => d.tbl_productos.img_pt),
     }));
   }
 
@@ -139,7 +137,9 @@ export class OrdersService {
             data: { stock_pt: { decrement: d.cantidad_dto } },
           });
           if (r.count === 0)
-            throw new ConflictException(`Stock insuficiente para el producto con id ${d.id_pt_dto}`);
+            throw new ConflictException(
+              `Stock insuficiente para el producto con id ${d.id_pt_dto}`,
+            );
         }
         return order;
       }
